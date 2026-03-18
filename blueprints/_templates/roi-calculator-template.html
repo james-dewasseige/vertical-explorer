@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculateur ROI Enobase — {{VERTICAL_NAME}}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #1a1a2e;
+      --accent: #4f46e5;
+      --accent-light: #818cf8;
+      --success: #10b981;
+      --text: #1f2937;
+      --text-light: #6b7280;
+      --bg: #ffffff;
+      --bg-alt: #f9fafb;
+      --border: #e5e7eb;
+      --radius: 8px;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-alt); color: var(--text); min-height: 100vh; }
+    header { background: var(--primary); color: white; padding: 20px 0; text-align: center; }
+    header h1 { font-size: 1.5rem; font-weight: 700; }
+    header p { color: rgba(255,255,255,0.7); margin-top: 6px; font-size: 0.95rem; }
+    .container { max-width: 900px; margin: 0 auto; padding: 0 20px; }
+    main { padding: 40px 0; }
+    .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 680px) { .calc-grid { grid-template-columns: 1fr; } }
+    .card { background: white; border-radius: var(--radius); border: 1px solid var(--border); padding: 28px; }
+    .card-title { font-size: 1rem; font-weight: 700; color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+    .card-title .icon { font-size: 1.1rem; }
+    .input-group { margin-bottom: 20px; }
+    .input-group label { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+    .input-group label span { color: var(--accent); font-weight: 700; }
+    .slider { width: 100%; -webkit-appearance: none; height: 6px; border-radius: 3px; background: var(--border); outline: none; cursor: pointer; }
+    .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .slider-labels { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-light); margin-top: 4px; }
+    .results-card { background: linear-gradient(135deg, var(--primary), #2d2d5e); color: white; border-radius: var(--radius); padding: 28px; }
+    .results-card .card-title { color: white; }
+    .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .result-item { background: rgba(255,255,255,0.1); border-radius: var(--radius); padding: 16px; }
+    .result-label { font-size: 0.75rem; color: rgba(255,255,255,0.65); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .result-value { font-size: 1.75rem; font-weight: 800; color: white; }
+    .result-value.positive { color: #6ee7b7; }
+    .result-value small { font-size: 1rem; font-weight: 400; }
+    .breakdown { margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 20px; }
+    .breakdown-title { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-bottom: 12px; font-weight: 600; }
+    .breakdown-item { display: flex; justify-content: space-between; font-size: 0.875rem; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .breakdown-item .label { color: rgba(255,255,255,0.75); }
+    .breakdown-item .value { font-weight: 600; color: white; }
+    .breakdown-item .value.positive { color: #6ee7b7; }
+    .breakdown-item .value.negative { color: #fca5a5; }
+    .cta-section { margin-top: 32px; text-align: center; }
+    .btn-cta { background: var(--accent); color: white; padding: 14px 32px; border-radius: var(--radius); text-decoration: none; font-weight: 700; font-size: 1rem; display: inline-block; margin-bottom: 12px; cursor: pointer; border: none; width: 100%; }
+    .btn-cta:hover { background: #4338ca; }
+    .btn-send { background: rgba(255,255,255,0.15); color: white; padding: 12px 28px; border-radius: var(--radius); border: 1px solid rgba(255,255,255,0.3); font-size: 0.9rem; cursor: pointer; width: 100%; margin-top: 8px; }
+    .note { font-size: 0.8rem; color: rgba(255,255,255,0.55); margin-top: 12px; }
+    footer { text-align: center; padding: 24px; color: var(--text-light); font-size: 0.85rem; border-top: 1px solid var(--border); background: white; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <h1>Calculateur ROI Enobase — {{VERTICAL_NAME}}</h1>
+    <p>Estimez vos économies en 60 secondes</p>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+    <div class="calc-grid">
+
+      <!-- INPUTS -->
+      <div>
+        <div class="card">
+          <div class="card-title"><span class="icon">⚙️</span> Votre situation actuelle</div>
+
+          <div class="input-group">
+            <label>Employés impliqués dans les opérations <span id="val-employees">5</span></label>
+            <input type="range" class="slider" id="employees" min="1" max="50" value="5" oninput="calculate()">
+            <div class="slider-labels"><span>1</span><span>50</span></div>
+          </div>
+
+          <div class="input-group">
+            <label>Heures/semaine sur tâches manuelles <span id="val-hours">10</span>h</label>
+            <input type="range" class="slider" id="hours" min="2" max="40" value="10" oninput="calculate()">
+            <div class="slider-labels"><span>2h</span><span>40h</span></div>
+          </div>
+
+          <div class="input-group">
+            <label>Coût horaire moyen (chargé) <span id="val-hourly">35</span>€</label>
+            <input type="range" class="slider" id="hourly" min="15" max="80" value="35" oninput="calculate()">
+            <div class="slider-labels"><span>15€</span><span>80€</span></div>
+          </div>
+
+          <div class="input-group">
+            <label>Erreurs de saisie/mois <span id="val-errors">5</span></label>
+            <input type="range" class="slider" id="errors" min="0" max="50" value="5" oninput="calculate()">
+            <div class="slider-labels"><span>0</span><span>50</span></div>
+          </div>
+
+          <div class="input-group">
+            <label>Coût moyen d'une erreur <span id="val-error-cost">150</span>€</label>
+            <input type="range" class="slider" id="errorCost" min="10" max="1000" value="150" step="10" oninput="calculate()">
+            <div class="slider-labels"><span>10€</span><span>1 000€</span></div>
+          </div>
+
+          <div class="input-group">
+            <label>Budget outils actuel/mois <span id="val-tools">200</span>€</label>
+            <input type="range" class="slider" id="tools" min="0" max="2000" value="200" step="50" oninput="calculate()">
+            <div class="slider-labels"><span>0€</span><span>2 000€</span></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+          <div class="card-title"><span class="icon">💰</span> Votre plan Enobase</div>
+          <div class="input-group">
+            <label>Abonnement Enobase/mois <span id="val-enobase">299</span>€</label>
+            <input type="range" class="slider" id="enobaseCost" min="99" max="999" value="299" step="50" oninput="calculate()">
+            <div class="slider-labels"><span>99€</span><span>999€</span></div>
+          </div>
+          <div class="input-group">
+            <label>Taux d'automatisation estimé <span id="val-automation">65</span>%</label>
+            <input type="range" class="slider" id="automation" min="20" max="90" value="65" step="5" oninput="calculate()">
+            <div class="slider-labels"><span>20%</span><span>90%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESULTS -->
+      <div>
+        <div class="results-card">
+          <div class="card-title"><span class="icon">📊</span> Votre ROI estimé</div>
+
+          <div class="results-grid">
+            <div class="result-item">
+              <div class="result-label">ROI sur 12 mois</div>
+              <div class="result-value positive" id="roi">0%</div>
+            </div>
+            <div class="result-item">
+              <div class="result-label">Payback period</div>
+              <div class="result-value" id="payback">0 mois</div>
+            </div>
+            <div class="result-item">
+              <div class="result-label">Économies nettes/an</div>
+              <div class="result-value positive" id="savings">0 €</div>
+            </div>
+            <div class="result-item">
+              <div class="result-label">Temps récupéré/sem</div>
+              <div class="result-value" id="timeBack">0h</div>
+            </div>
+          </div>
+
+          <div class="breakdown">
+            <div class="breakdown-title">Détail du calcul</div>
+            <div class="breakdown-item">
+              <span class="label">Gain temps (heures automatisées)</span>
+              <span class="value positive" id="b-time">0 €</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="label">Erreurs évitées</span>
+              <span class="value positive" id="b-errors">0 €</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="label">Delta coût outils</span>
+              <span class="value" id="b-tools">0 €</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="label">Total gains/an</span>
+              <span class="value positive" id="b-total">0 €</span>
+            </div>
+            <div class="breakdown-item">
+              <span class="label">Coût Enobase/an</span>
+              <span class="value negative" id="b-cost">0 €</span>
+            </div>
+          </div>
+
+          <div class="cta-section">
+            <button class="btn-cta" onclick="bookDemo()">Réserver une démo gratuite →</button>
+            <button class="btn-send" onclick="sendResults()">📧 Recevoir ces résultats par email</button>
+            <p class="note">Estimation indicative basée sur vos données. Résultats réels peuvent varier.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  <strong>Enobase</strong> — ERP AI-native pour {{VERTICAL_NAME}} · <a href="https://enobase.com">enobase.com</a>
+</footer>
+
+<script>
+function fmt(n) {
+  return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(n) + ' €';
+}
+function calculate() {
+  const employees = +document.getElementById('employees').value;
+  const hoursPerWeek = +document.getElementById('hours').value;
+  const hourly = +document.getElementById('hourly').value;
+  const errorsPerMonth = +document.getElementById('errors').value;
+  const errorCost = +document.getElementById('errorCost').value;
+  const currentTools = +document.getElementById('tools').value;
+  const enobaseCost = +document.getElementById('enobaseCost').value;
+  const automationRate = +document.getElementById('automation').value / 100;
+
+  // Update displayed values
+  document.getElementById('val-employees').textContent = employees;
+  document.getElementById('val-hours').textContent = hoursPerWeek;
+  document.getElementById('val-hourly').textContent = hourly;
+  document.getElementById('val-errors').textContent = errorsPerMonth;
+  document.getElementById('val-error-cost').textContent = errorCost;
+  document.getElementById('val-tools').textContent = currentTools;
+  document.getElementById('val-enobase').textContent = enobaseCost;
+  document.getElementById('val-automation').textContent = Math.round(automationRate * 100);
+
+  // Calculations
+  const annualTimeGain = hoursPerWeek * automationRate * 52 * hourly;
+  const annualErrorSavings = errorsPerMonth * 12 * errorCost * automationRate;
+  const annualToolsDelta = (currentTools - enobaseCost) * 12;
+  const totalGain = annualTimeGain + annualErrorSavings + annualToolsDelta;
+  const enobaseAnnual = enobaseCost * 12;
+  const netSavings = totalGain - enobaseAnnual;
+  const roi = enobaseAnnual > 0 ? (netSavings / enobaseAnnual * 100) : 0;
+  const paybackMonths = totalGain > 0 ? Math.ceil(enobaseAnnual / (totalGain / 12)) : 0;
+  const timeBackPerWeek = hoursPerWeek * automationRate;
+
+  // Update results
+  document.getElementById('roi').textContent = Math.round(roi) + '%';
+  document.getElementById('payback').textContent = paybackMonths + ' mois';
+  document.getElementById('savings').textContent = fmt(netSavings);
+  document.getElementById('timeBack').textContent = Math.round(timeBackPerWeek) + 'h';
+  document.getElementById('b-time').textContent = fmt(annualTimeGain);
+  document.getElementById('b-errors').textContent = fmt(annualErrorSavings);
+  const toolsDeltaEl = document.getElementById('b-tools');
+  toolsDeltaEl.textContent = fmt(annualToolsDelta);
+  toolsDeltaEl.className = 'value ' + (annualToolsDelta >= 0 ? 'positive' : 'negative');
+  document.getElementById('b-total').textContent = fmt(totalGain);
+  document.getElementById('b-cost').textContent = '−' + fmt(enobaseAnnual);
+}
+function bookDemo() {
+  window.open('https://calendly.com/enobase/demo', '_blank');
+}
+function sendResults() {
+  const roi = document.getElementById('roi').textContent;
+  const savings = document.getElementById('savings').textContent;
+  const payback = document.getElementById('payback').textContent;
+  const subject = encodeURIComponent('Mon ROI Enobase — ' + roi + ' sur 12 mois');
+  const body = encodeURIComponent('Bonjour,\n\nVoici mes résultats du calculateur ROI Enobase :\n\n• ROI sur 12 mois : ' + roi + '\n• Économies nettes : ' + savings + '\n• Payback period : ' + payback + '\n\nCalculé sur enobase.com\n\nPouvez-vous me contacter pour discuter ?');
+  window.location.href = 'mailto:hello@enobase.com?subject=' + subject + '&body=' + body;
+}
+calculate();
+</script>
+</body>
+</html>
